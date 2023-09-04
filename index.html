@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebQC, quality check of raw data files in genomics, transcriptomics, proteomics and metabolomics</title>
+  <script src="falco.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <style>
+    .area {
+      border-left: 1px solid #dee2e6;
+      # position: absolute;
+
+
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+
+
+      text-align: center;
+    }
+
+    .uploadarea {
+      border: 4px dashed rgb(45, 62, 80);
+      filter: alpha(opacity=50);
+      -khtml-opacity: 0.5;
+      -moz-opacity: 0.5;
+      opacity: 0.5;
+      height: 20vh;
+      background-image: url("./images/download.png");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: 64px 64px;
+
+    }
+
+    .uploadarea:hover,
+    .uploadarea.dragging,
+    .uploadarea.uploading {
+      filter: alpha(opacity=100);
+      -khtml-opacity: 1;
+      -moz-opacity: 1;
+      opacity: 1;
+    }
+
+    .uploadarea input {
+      margin: auto;
+      width: 100%;
+      height: 100%;
+      # margin-left: -300%;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .uploadarea input:focus {
+      outline: none;
+    }
+
+    div.summary ul {
+      padding-left: 0;
+      list-style-type: none;
+    }
+
+    div.summary ul li img {
+      margin-bottom: -0.5em;
+      margin-top: 0.5em;
+    }
+
+    div.main {
+      background-color: white;
+    }
+
+    div.module {
+      padding-bottom: 1em;
+      padding-top: 1em;
+      border-bottom: 1px solid rgb(45, 62, 80)
+    }
+
+    div.footer {
+      background-color: #EEE;
+      border: 0;
+      margin: 0;
+      padding: 0.5em;
+      font-size: 100%;
+      width: 100%;
+    }
+
+    h2 {
+      font: 1em monospace;
+      color: #2a5e8c;
+      padding-bottom: 0;
+      margin-bottom: 0;
+      clear: left;
+    }
+
+    table {
+      margin: auto;
+      text-align: center;
+    }
+
+    th {
+      text-align: center;
+      background-color: #000080;
+      color: #FFF;
+      padding: 0.4em;
+    }
+
+    td {
+      font-family: monospace;
+      text-align: left;
+      background-color: #EEE;
+      color: #000;
+      padding: 0.4em;
+    }
+
+    img {
+      padding-top: 0;
+      margin-top: 0;
+      border-top: 0;
+    }
+
+    .nav-link{
+      color:white;
+
+    }
+
+    p {
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .pass {
+      color: #009900;
+    }
+
+    .warn {
+      color: #999900;
+    }
+
+    .fail {
+      color: #990000;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="" style="height: 100vh; width:100vw; overflow-x: hidden; overflow-y: hidden;">
+      <div class="navbar navbar-expand-lg " style="background: rgb(45, 62, 80); height:3.25rem">
+        <div class="container-fluid">
+
+          <a class="navbar-brand" href="https://nfdi4plants.org/">
+            <img src="images/logo.png" alt="Logo" width="32" height="32" style=" ">
+          </a>
+
+          <ul class="nav nav-tabs justify-content-center" id="TabMenu" role="tablist" style="margin-top:10px ">
+
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active px-3" id="WebQC" data-bs-toggle="tab" data-bs-target="#home" type="button"
+                role="tab" aria-controls="home" aria-selected="true">WebQC Summary</button>
+            </li>
+
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">github</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            
+          </ul>
+
+
+        </div>
+
+      </div>
+    <div class="row" style="height:calc(100vh - 3.5rem )">
+      <div class=" col-sm-10 ">
+        <div class="row tab-content" id="TabContent" style="height:calc(100vh - 3.5rem )">
+          <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home_tab">
+            <div class="row">
+            <div class="col-sm-3 " style="padding-right : 1rem;">
+              
+              <div class=" area uploadarea "
+              ondragenter="this.className='area uploadarea dragging'" 
+              ondrop=";DragAndDrop(event)" style="margin:auto; height:100%">
+                 
+                
+                <input type="file" onchange="onFiles(this.files)" id="import"  multiple>
+              </div>
+              <div class="text-start" id="sum" style="margin:auto; ">
+              </div>
+              <div class="text-start" id="download" style="margin:auto; ">
+              </div>
+            </div>
+            <div class="col-sm-9" id="multiQC" style="height:calc(100vh - 3.5rem ); overflow-y: scroll;">
+
+              <div class="module">
+                <h2 class="" id="spider"> Summary Radar
+                  </h2>
+                 <div id="spiderf"></div>
+              </div>
+
+
+              <div class="module">
+                <h2 class="" id="p1m"> Phred Score Average 
+                  </h2>
+                 <div id="p1f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p2m"> Per Sequence Quality 
+                  </h2>
+                 <div id="p2f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p3m"> GC Content
+                  </h2>
+                 <div id="p3f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p4m"> Per Base N Content 
+                  </h2>
+                <div id="p4f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p5m"> Per Base Sequence Content 
+                  </h2>
+                <div id="p5f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p6m"> Sequence Length Distribution 
+                  </h2>
+                <div id="p6f"></div>
+              </div>
+
+              <div class="module">
+                <h2 class="" id="p7m"> 
+                  </h2>
+                <div id="p7f"></div>
+              </div>
+            </div>
+          </div>
+         </div>
+        </div>
+      </div>
+    
+    <div class="col-sm-2 align-self-center" style="margin-left: 0px; padding :0px;">
+      <pre class="console" id="console"
+        style="font-size: 8px; ; padding :0px; overflow-y: scroll; overflow-x: scroll;height: calc(100vh - 3.5rem ); margin-bottom: 0px;"> Console output 
+                </pre>
+    </div>
+  </div>
+  </div>
+  <script>
+
+
+    var total_qc = 0;
+    var figure_1 = [];
+    var figure_2 = [];
+    var figure_3 = [];
+    var figure_4 = [];
+    var figure_5 = [];
+    var figure_6 = [];
+    var figure_7 = [];
+    var all_figures = [figure_1, figure_2,figure_3, figure_4,figure_5, figure_6, figure_7];
+    var dbg;
+    const D3Colors = [
+        '#1f77b4',
+        '#ff7f0e',
+        '#2ca02c',
+        '#d62728',
+        '#9467bd',
+        '#8c564b',
+        '#e377c2',
+        '#7f7f7f',
+        '#bcbd22',
+        '#17becf'
+      ];
+    function err(text) {
+      document.getElementById("console").innerHTML += text + "<br>";
+
+    }
+
+      //console.log(txt);
+      
+      
+    function tsvJSON(txt){
+        var lines=txt.split("\n");
+        var result = {};
+        var headers=lines[0].split("\t");
+          for(var k=0;k<headers.length;k++){
+                result[headers[k]]= [];
+            }
+        for(var i=1;i<lines.length;i++){
+            var currentline=lines[i].split("\t");              
+            for(var j=0;j<headers.length;j++){
+                result[headers[j]].push( currentline[j]);
+            }
+        }
+
+        //return result; //JavaScript object
+        return JSON.stringify(result); //JSON
+      }
+
+
+    function mqc(txt, fileName, textStart, textEnd, plotName, x, y, xLabel, yLabel, figType, nFig=0, d1="G", d2="A", d3="T", d4="C"){
+      const pass_txt =  txt.match(textStart+"\t(....)\n#")[1];  
+      const p1_txt =  txt.match(textStart+"\t....\n#((.|\n)*?)"+ textEnd);
+      const dict_color = {
+        "pass" : "green",
+        "warn" : "orange",
+        "fail" : "red"
+
+      }
+      const text_color = dict_color[pass_txt];
+        if  (p1_txt !=null){
+          let p1_data = JSON.parse(tsvJSON(p1_txt[1]));
+          const color_i = (total_qc % 10)+1;
+          const color_name = D3Colors[color_i];
+          let p1_fig = {x : p1_data[x], 
+                        y : p1_data[y], 
+                        type : figType, 
+                        name : '<span style="color:'+text_color+'">'+fileName+'</span>', 
+                        line : { color :color_name}, 
+                        textfont: {
+                                    family: 'sans serif',
+                                    size: 18,
+                                    color: text_color
+                                  },
+                        };
+          
+          all_figures[nFig].push(p1_fig);
+          //console.log(all_figure);
+          return [plotName, 
+                  all_figures[nFig], 
+                            {
+                              margin: { t: 0 }, 
+                              showlegend: true,
+                              xaxis : {title : xLabel},
+                              yaxis : {title : yLabel},
+
+                            },
+                            p1_data[d1],
+                            p1_data[d2],
+                            p1_data[d3],
+                            p1_data[d4]
+                            ,
+                            ];
+          
+            
+
+
+        }else{
+
+          console.log(p1_txt )
+
+        }
+          
+        
+
+    }
+
+
+    function runFalco(file) {
+      //fetch(file)
+      //.then((res) => res.text())
+      //.then((text) => {
+      
+      let reader = new FileReader();
+      reader.onload = function () {
+        var data = new Uint8Array(reader.result);
+        const fileName = file.name;
+        FS.writeFile(fileName, data);
+        const fileName1 = fileName.split(".")[0];
+        callMain([fileName]);
+
+        // ;
+
+        const summary = FS.readFile("summary.txt");
+        
+        
+        
+        const textData = FS.readFile("fastqc_data.txt");
+        let txt = new TextDecoder().decode(textData);
+        const totalSeq= txt.match("\nTotal Sequences\t((.|)*?)\n" )[1];
+              
+              console.log(total_qc);
+              const f1 = mqc(txt, fileName1, ">>Per base sequence quality",
+                            "\n>>END_MODULE", 
+                            "p1f",
+                            "Base",
+                            "Mean",
+                            "Base position" ,
+                            "Phread quality" ,
+                            "line",
+                            0,
+                            "Lower Quartile",
+                            "Median"
+                            );
+               const f2 = mqc(txt, fileName1, ">>Per sequence quality scores",
+                            "\n>>END_MODULE", 
+                            "p2f",
+                            "Quality",
+                            "Count",
+                            "Quality" ,
+                            "Count" ,
+                            "line",
+                            1
+                            );
+               const f3 = mqc(txt, fileName1, ">>Per sequence GC content",
+                            "\n>>END_MODULE", 
+                            "p3f",
+                            "GC Content",
+                            "Count",
+                            "GC Content" ,
+                            "Count" ,
+                            "line",
+                            2
+                            );
+               const f4 = mqc(txt, fileName1, ">>Per base N content",
+                            "\n>>END_MODULE", 
+                            "p4f",
+                            "Base",
+                            "N-Count",
+                            "Base" ,
+                            "N-Count" ,
+                            "line",
+                            3
+                            );
+              let f5 = mqc(txt, fileName1, ">>Per base sequence content",
+                            "\n>>END_MODULE\n", 
+                            "p5f",
+                            "Base",
+                            "G",
+                            "Base" ,
+                            "Max A-T and G-T difference" ,
+                            "line",
+                            4,
+                            "A",
+                            "T",
+                            "G",
+                            "C"
+                            );
+              const f6 = mqc(txt, fileName1, ">>Sequence Length Distribution",
+                            "\n>>END_MODULE\n", 
+                            "p6f",
+                            "Length",
+                            "Count",
+                            "Sequence length" ,
+                            "Number of sequences" ,
+                            "line",
+                            5,
+ 
+                            );
+              
+              const color_i = (total_qc % 10)+1 ;
+              const color_name = D3Colors[color_i];
+              const perbase =  [].map.call(f5[3], (el, i)=> {  return  Math.max(Math.abs(parseFloat(f5[3][i]) -parseFloat(f5[5][i])) , Math.abs( parseFloat(f5[4][i])- parseFloat(f5[6][i]))) }) ;
+              const abs1 = [].map.call(perbase, (ele, index)=>{return Math.abs(ele) });
+              const max = Math.max.apply(null, abs1);
+              f5[1][total_qc]["y"] = perbase;
+              
+              const phred = f1[1][total_qc]["y"];
+              const calSum = list => list.reduce((a,b)=> parseFloat(a)+parseFloat(b),0);
+              
+              const phredMean = calSum(phred)/phred.length/40*100
+              function calScore(arr, fail, warn ){
+                
+              const list =[].map.call(arr, (el, index)=>{  
+                  
+                  if (fail(el)){ 
+                   return 0 ;                  
+                  }else if (warn(el)){
+                    return 0.5;
+                  }else {
+                    return 1;
+                  }                  
+                } );
+              return list;
+              }
+              const lower = f1[3];
+              const median = f1[4];
+              const lowerScore = calScore(lower, (x)=>{return x<5}, (x)=>{return x<10});
+              const medianScore = calScore(median, (x)=>{return x<20}, (x)=>{return x<25});
+              const final = [].map.call(lowerScore, (el, index)=> {return Math.min(el, medianScore[index]); } );
+              const final1 = calSum(final)/final.length*100;
+
+              const perSeqQx = f2[1][total_qc]["x"];
+              const perSeqQScore = calScore(perSeqQx, (x)=>{return x<20}, (x)=>{return x<27});
+              const perSeqQy = f2[1][total_qc]["y"];
+              const weightedPerSeqQ = [].map.call(perSeqQScore,(el, index)=> {return el*perSeqQy[index] } )
+              const final2 = calSum(weightedPerSeqQ)/totalSeq*100;
+
+              const perBaseSeqCon = calScore(perbase, (x)=>{return x>20}, (x)=>{return x>10});
+              const final3 = calSum(perBaseSeqCon)/perBaseSeqCon.length*100;
+
+              const perBaseGC = calScore(f3[1][total_qc]["y"], (x)=>{return x>10}, (x)=>{return x>5});
+              const final4 = calSum(perBaseGC)/perBaseGC.length*100;
+
+              const perBaseN = calScore(f4[1][total_qc]["y"], (x)=>{return x>20}, (x)=>{return x>5});
+              const final5 = calSum(perBaseN)/perBaseN.length*100;
+
+              const seqLength = Math.max.apply(null, f6[1][total_qc]["y"]);
+              const final6 = seqLength/totalSeq*100;
+
+              const c1 = f1[1][total_qc]["textfont"]["color"];
+              const c2 = f2[1][total_qc]["textfont"]["color"];
+              const c3 = f3[1][total_qc]["textfont"]["color"];
+              const c4 = f4[1][total_qc]["textfont"]["color"];
+              const c5 = f5[1][total_qc]["textfont"]["color"];
+              const c6 = f6[1][total_qc]["textfont"]["color"];
+              figure_7.push({
+                      type: 'scatterpolar',
+                      r: [  final1, final2 , final3, final4, final5, final6,],
+                      theta: ['Per Base Sequence quality','Per Sequence Quality','Per Base Sequence Content', 'Per Base GC Content', 'Per Base N Content', 'Sequence Length'],
+                      mode:"lines",
+                      marker: {color: color_name,
+                    line:{color: [c1,c2,c3,c4,c5,c6], width :3}},
+                    mode: "lines+markers",
+                    fill: "toself",
+
+                    }) ;
+
+              const layout = {
+                polar: {
+                  radialaxis: {
+                    visible: true,
+                    range: [0, 100]
+                  }
+                },
+                showlegend: false
+              }
+
+              Plotly.newPlot( f1[0] , f1[1],f1[2],f1[3]
+              ).then(() => {Plotly.react( f1[0],f1[1] 
+                ).then(() => {Plotly.react( f2[0],f2[1],f2[2],f2[3] 
+                  ).then(() => {Plotly.react( f3[0],f3[1],f3[2],f3[3]  
+                    ).then(()=> {Plotly.react( f4[0],f4[1],f4[2],f4[3]
+                      ).then(()=>{ Plotly.react( f5[0],f5[1],f5[2],f5[3]  
+                        ).then(()=>{ Plotly.react( f6[0],f6[1],f6[2],f6[3] 
+                          ).then(()=>{ Plotly.react( "spiderf", figure_7 ,layout )
+
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+        //const con = new TextDecoder().decode(summary);
+        //document.getElementById("log").innerText = con;
+        const htmlRep = FS.readFile("fastqc_report.html");
+
+        const htmlDecode = new TextDecoder().decode(htmlRep);
+        var htmlEle = document.createElement('html');
+        htmlEle.innerHTML = htmlDecode;
+        //const styles = htmlEle.querySelectorAll("head")[0].querySelectorAll("style") ;
+        //[].map.call(styles, function(el) {return document.head.appendChild(el);});
+        //const links = htmlEle.querySelectorAll("head")[0].querySelectorAll("link");
+        //[].map.call(links, function (el) { return document.head.appendChild(el); });
+
+
+
+        const n = 10;//(imported.files.length + 3).toString();
+
+        const tabMenuHTML = '<li class="nav-item px-3" role="presentation" style=" width:calc(80vw /'+ n +')"><button class="nav-link" id="' + fileName1 +
+          '_tab" data-bs-toggle="tab" data-bs-target="#' + fileName1 +
+          '"type="button" role="tab" aria-controls="profile" aria-selected="false">' + fileName1 + '</button></li>';
+        document.getElementById("TabMenu").innerHTML += tabMenuHTML;
+
+
+        const tabContentHTML = '<div class="tab-pane fade" id="' + fileName1 + '" role="tabpanel" aria-labelledby="' + fileName1 +
+          `_tab" > <div class=" col-sm-12 ">
+                    <div class="row tab-content"  style="height:calc(100vh - 3.5rem )">
+                      <div class="col-sm-3 " style="padding : 2em;">
+                        <div class="text-start" id="`+fileName1+
+                        `_sum" style="margin:auto; ">
+                        </div>
+                        <div class="text-start" id="`+fileName1+
+                        `_download" style="margin:auto; ">
+                        </div>
+                      </div>
+                      <div class="col-sm-9 " id="`+fileName1+
+                      `_content" style="height:calc(100vh - 3.5rem );  padding-left : 2em; padding-right : 0em">
+                    </div>
+                    </div>
+                  </div>    
+                </div > `;
+
+        document.getElementById("TabContent").innerHTML += tabContentHTML;
+        const sums = htmlEle.querySelectorAll("div.summary");
+        sums[0].style = "position: static; width: auto; top: 0em; margin: auto"
+        let sum = document.getElementById(fileName1 +"_sum");
+        sum.innerHTML = sums[0].innerHTML;
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+
+
+
+
+
+        let htmlVis = document.getElementById(fileName1+"_content");
+
+        let main = htmlEle.querySelector("div.main");
+        main.style = "position: static; height : calc(100vh - 3.5rem); width : 100%; overflow-x: hidden;"
+        htmlVis.innerHTML = main.outerHTML;
+        const eleList = [[["basicstatistics"], ["null_string"]],
+        [["perbasesequencequality"], ["seqbasequalityboxplot"]],
+        [["pertilesequencequality"], ["tilequalityheatmap"]],
+        [["persequencequalityscores"], ["seqqualitylineplot"]],
+        [["perbasesequencecontent"], ["basesequencecontentlineplot"]],
+        [["persequencegccontent"], ["sequencegccontentlineplot"]],
+        [["perbasencontent"], ["basencontentlineplot"]],
+        [["sequencelengthdistribution"], ["sequencelengthdistributionlineplot"]],
+        [["sequenceduplicationlevels"], ["seqduplevelslineplot"]],
+        [["overrepresentedsequences"], ["null_string"]],
+        [["adaptercontent"], ["adapterlineplot"]]
+        ];
+        [].map.call(eleList, function (el) {
+
+          let find_ele = document.querySelector('#' + el[0]);
+          if (find_ele != null) {
+            find_ele.setAttribute("id", fileName1 + "_" + el[0]);
+            let find_ele1 = document.querySelector('#' + el[1]);
+            try { find_ele1.setAttribute("id", fileName1 + "_" + el[1]); }
+            catch (err) { console.log(err) };
+            const a = document.querySelector("a[href='#" + el[0] + "']");
+            //console.log(a);
+            a.href = "#" + fileName1 + "_" + el[0];
+          }
+
+
+        });
+        //const headScripts = htmlEle.querySelectorAll("head")[0].querySelectorAll("script") ;
+        //[].map.call(headScripts, function(el) {return document.head.appendChild(el)});
+
+        const scripts = htmlEle.querySelectorAll("body")[0].querySelectorAll("script");
+
+        [].map.call(scripts, function (el) {
+          let a = el.innerHTML.replaceAll("document.getElementById('", "document.getElementById('" + fileName1 + "_");
+          let b = a.replaceAll("Plotly.newPlot('", "Plotly.newPlot('" + fileName1 + "_");
+          //console.log(b);
+          eval(b);
+        });
+        let dl_ele = document.getElementById(fileName1 +"_download");
+        dl_ele.innerHTML = "";
+        let d1 = document.createElement("a");
+        d1.className = "btn  btn-xs";
+        d1.innerText = file.name + " Summary";
+        d1.download = file.name + "_summary.txt";
+        d1.href = URL.createObjectURL(new Blob([summary], { type: "application/octet-stream" }));
+        d1.id = "summaryButton";
+        dl_ele.append(d1);
+
+        let d2 = document.createElement("a");
+        d2.className = "btn  btn-xs";
+        d2.innerText = file.name + " text Data";
+        d2.download = file.name + "factqc_data.txt";
+        d2.href = URL.createObjectURL(new Blob([textData], { type: "application/octet-stream" }));
+        d2.id = "dataButton";
+        dl_ele.append(d2);
+
+        let d3 = document.createElement("a");
+        d3.className = "btn  btn-xs";
+        d3.innerText = file.name + " HTML report";
+        d3.download = file.name + "_report.html";
+        d3.href = URL.createObjectURL(new Blob([htmlRep], { type: "application/octet-stream" }));
+        d3.id = "htmlButton";
+        dl_ele.append(d3);
+
+        total_qc = total_qc +1;
+
+      };
+      reader.readAsArrayBuffer(file);
+
+      //})
+
+    }
+    
+    function DragAndDrop(e) {
+            e.preventDefault();
+            
+            var items = e.dataTransfer.items;
+            for (var i=0; i<items.length; i++) {        
+                var item = items[i].webkitGetAsEntry();  //Might be renamed to GetAsEntry() in 2020
+                if (item) {
+                    GetFileTree(item);
+                }
+            }
+        }
+
+
+        function GetFileTree(item, path) {
+            path = path || "";
+            if (item.isFile) {
+
+                item.file(function(file) {
+                    onFile(file);
+                    console.log(file);
+                });
+                
+            } else if (item.isDirectory) {
+
+                console.log(item.fullPath);  //console.log(item.name)
+
+                // Get folder contents  
+                var dirReader = item.createReader();
+                dirReader.readEntries(function(entries) {
+                    for (var i=0; i<entries.length; i++) {
+                        GetFileTree(entries[i], path + item.name + "/");
+                    }
+                });
+            }
+        }
+
+      function onFile(file) {
+          name = file.name.replace(/.[^/.]+$/, '');
+        console.log('upload code goes here', file, name);
+        const extension = file.name.split(".").slice(-1)[0].toString();
+        if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
+          if (file.size < (50000000 * 1024)) {
+            //imported.parentNode.className = 'area uploading';
+            runFalco(file);
+
+          } else {
+            window.alert('File size is too large, please ensure you are importing a file of less than 50GB');
+          }
+        } else {
+          window.alert('file extension is' + extension + ' not supported, please fastq, bam, or gz files');
+        }
+
+      };
+
+        
+    function onFiles(files) {
+
+      [].map.call(files, function (file) {
+        onFile(file);
+      } );
+    }
+
+
+
+    
+
+
+  </script>
+
+
+
+</body>
+
+</html>
