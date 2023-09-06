@@ -265,11 +265,39 @@
                 </pre>
     </div>
   </div>
+  <!-- Button trigger modal -->
+<button type="button" id="modalButton" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#runningModal">
+  Launch static backdrop modal
+</button>
+
+<!-- Modal -->
+<div class="modal" id="runningModal" data-bs-backdrop="static"  data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog  modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Quality Control is Running</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+       
+        <div class="spinner-border" role="status">
+          
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <span id="fileInfo"></span>
+      </div>
+      <div class="modal-footer">
+       
+      </div>
+    </div>
+  </div>
+</div>
   </div>
   <script>
 
 
     var total_qc = 0;
+    
     var figure_1 = [];
     var figure_2 = [];
     var figure_3 = [];
@@ -279,6 +307,7 @@
     var figure_7 = [];
     var all_figures = [figure_1, figure_2,figure_3, figure_4,figure_5, figure_6, figure_7];
     var dbg;
+    
     const D3Colors = [
         '#1f77b4',
         '#ff7f0e',
@@ -376,7 +405,8 @@
     }
 
 
-    function runFalco(file) {
+    function runFalco(file, fileN, fileindex) {
+      
       //fetch(file)
       //.then((res) => res.text())
       //.then((text) => {
@@ -696,12 +726,17 @@
         dl_ele.append(d3);
 
         total_qc = total_qc +1;
+        console.log(fileN+ " the file is " +  fileindex)
+        if ( fileindex+1 ==fileN){
 
+          document.getElementById("modalButton").click();
+        }else{}
+       
       };
       reader.readAsArrayBuffer(file);
 
       //})
-
+      
     }
     
     function DragAndDrop(e) {
@@ -740,32 +775,43 @@
             }
         }
 
-      function onFile(file) {
+      function onFile(file, fileN, fileindex) {
+        
+
           name = file.name.replace(/.[^/.]+$/, '');
         console.log('upload code goes here', file, name);
         const extension = file.name.split(".").slice(-1)[0].toString();
         if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
-          if (file.size < (50000000 * 1024)) {
+          if (file.size < (3980000 * 1024)) {
             //imported.parentNode.className = 'area uploading';
-            runFalco(file);
+            runFalco(file, fileN, fileindex);
 
           } else {
-            window.alert('File size is too large, please ensure you are importing a file of less than 50GB');
+            window.alert('File size is too large, please ensure you are importing a file of less than 3.98GB');
+            document.getElementById("modalButton").click();
+            
           }
         } else {
-          window.alert('file extension is' + extension + ' not supported, please fastq, bam, or gz files');
+          window.alert('file extension' + extension + ' is not supported, please fastq, bam, or gz files');
+          document.getElementById("modalButton").click();
         }
-
+        
       };
 
         
-    function onFiles(files) {
+    async function onFiles(files) {
+      
 
-      [].map.call(files, function (file) {
-        onFile(file);
-      } );
+      document.getElementById("modalButton").click();
+      let fileN = files.length;
+        [].map.call(files, function (file, fileindex) {
+        onFile(file, fileN, fileindex);
+        //
+      } )
+      
+      
+      
     }
-
 
 
     
