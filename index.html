@@ -191,12 +191,12 @@
             <div class="row">
             <div class="col-sm-3 " style="padding-right : 1rem;">
               
-              <div class=" area uploadarea "
+              <div class=" area uploadarea " id="importArea"
               ondragenter="this.className='area uploadarea dragging'" 
               ondrop=";DragAndDrop(event)" style="margin:auto; height:100%">
-                 
+                 <span id="folderStru"></span>
                 
-                <input type="file" onchange="onFiles(this.files)" id="import"  multiple>
+                <input type="file" onchange="onFiles(this.files)" id="import" webkitdirectory  multiple>
               </div>
               <div class="text-start" id="sum" style="margin:auto; ">
               </div>
@@ -307,6 +307,7 @@
     var figure_7 = [];
     var all_figures = [figure_1, figure_2,figure_3, figure_4,figure_5, figure_6, figure_7];
     var dbg;
+    var folders = {files: [], folders: []};
     
     const D3Colors = [
         '#1f77b4',
@@ -324,7 +325,14 @@
       document.getElementById("console").innerHTML += text + "<br>";
 
     }
-
+    var handleException = (e) => {
+        if (e instanceof ExitStatus || e == "unwind") {
+          return EXITSTATUS;
+        };
+        alert("An error has occured, please refresh the webpage, check your files and try again");
+        document.getElementById("fileInfo").outerHTML = "<button class='btn btn-danger' onclick='location.reload()'> ERROR, please refresh </button>";
+        quit_(1, e);
+      };
       //console.log(txt);
       
       
@@ -406,7 +414,7 @@
 
 
     function runFalco(file, fileN, fileindex) {
-      
+      document.getElementById("modalButton").click();
       //fetch(file)
       //.then((res) => res.text())
       //.then((text) => {
@@ -743,42 +751,71 @@
             e.preventDefault();
             
             var items = e.dataTransfer.items;
-            for (var i=0; i<items.length; i++) {        
+            for (var i=0; i<items.length; i++) {
+                let firstI = i;        
                 var item = items[i].webkitGetAsEntry();  //Might be renamed to GetAsEntry() in 2020
-                if (item) {
-                    GetFileTree(item);
+                if (item) {       
+                    
+                    GetFileTree(item, folders);
+                }else {
+                    
                 }
-            }
+                
+            };
+            
         }
 
 
-        function GetFileTree(item, path) {
+       function GetFileTree(item, SubFolder, path) {
+            
             path = path || "";
             if (item.isFile) {
+                
+                
+                if (SubFolder["files"]===undefined) {
+                  SubFolder["files"]=[];
+                  SubFolder["files"][item.name] = {"size": "unknow", "path":item.fullPath } 
+
+                }  else{
+                  SubFolder["files"][item.name] = {"size": "unknow", "path":item.fullpath };
+                }  
 
                 item.file(function(file) {
-                    onFile(file);
-                    console.log(file);
+                    onFile(file, 1, 0,  SubFolder["files"], path);
+                    //console.log(file);
                 });
                 
             } else if (item.isDirectory) {
+              
+              if (SubFolder["folders"]===undefined) {
+                  SubFolder["folders"]=[];
+                  SubFolder["folders"][item.name] = {"size": "unknow" , "path":item.fullPath} 
 
-                console.log(item.fullPath);  //console.log(item.name)
-
+                }  else{
+                  SubFolder["folders"][item.name] = {"size": "unknow" , "path":item.fullPath};
+                }  
+                //console.log(item.name);  //console.log(item.name)
+                
                 // Get folder contents  
                 var dirReader = item.createReader();
                 dirReader.readEntries(function(entries) {
                     for (var i=0; i<entries.length; i++) {
-                        GetFileTree(entries[i], path + item.name + "/");
+                        GetFileTree(entries[i], SubFolder["folders"][item.name], path + item.name + "/");
+
+                        
                     }
                 });
-            }
+            };
+            
         }
 
-      function onFile(file, fileN, fileindex) {
-        
-
+      function onFile(file, fileN, fileindex, info, path) {
+          info = info || folders["files"];
+          path = path || "/"
+          info[file.name] = {size : file.size,  "path":path};
           name = file.name.replace(/.[^/.]+$/, '');
+          document.getElementById("folderStru").innerHTML += path + file.name + "<br>";
+          
         console.log('upload code goes here', file, name);
         const extension = file.name.split(".").slice(-1)[0].toString();
         if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
@@ -788,21 +825,21 @@
 
           } else {
             window.alert('File size is too large, please ensure you are importing a file of less than 3.98GB');
-            document.getElementById("modalButton").click();
+            
             
           }
         } else {
           window.alert('file extension' + extension + ' is not supported, please fastq, bam, or gz files');
-          document.getElementById("modalButton").click();
+          
         }
         
       };
 
         
-    async function onFiles(files) {
+    function onFiles(files) {
       
 
-      document.getElementById("modalButton").click();
+      
       let fileN = files.length;
         [].map.call(files, function (file, fileindex) {
         onFile(file, fileN, fileindex);

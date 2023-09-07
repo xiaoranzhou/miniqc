@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+
+body
+{
+	font-family: Helvetica;
+	font-size: 100%;
+	height: 100vh
+
+	
+}
+
+	
+
+.banner {
+  position:absolute;
+  
+  background-color: white;
+  text-align: center;
+  
+}
+
+
+h1, h2
+{
+	font-size: 3vw;
+	font-weight: normal;
+	animation: clicking 2s ;
+	animation-iteration-count: 3;
+}
+
+h2
+{
+	font-size: 1.3em;
+}
+
+
+
+#filedrag
+{
+	display: none;
+	font-weight: bold;
+	text-align: center;
+	#padding: 1em 0;
+	margin: 1em 0;
+	color: #333;
+	border: 2px dashed #333;
+	#border-radius: 0px;
+	cursor: default;
+	#height: 15vh;
+	
+}
+
+#filedrag.hover
+{
+	color: #f00;
+	border-color: #f00;
+	border-style: solid;
+	box-shadow: inset 0 10px 20px #888;
+}
+
+img
+{
+	max-width: 100%;
+}
+
+fileselect {
+align: center;
+
+}
+
+
+#progress p
+{
+	display: block;
+	width: 240px;
+	padding: 2px 5px;
+	margin: 2px 0;
+	border: 1px inset #446;
+	border-radius: 5px;
+	background: #eee url("progress.png") 100% 0 repeat-y;
+}
+
+#progress p.success
+{
+	background: #0c0 none 0 0 no-repeat;
+}
+
+#progress p.failed
+{
+	background: #c00 none 0 0 no-repeat;
+}
+
+table {
+  /* Not required only for visualizing */
+  border-collapse: collapse;
+  width: 100%;
+}
+form {
+	background-color: white;
+	position: sticky;
+	z-index: 100;
+	top: 0;
+	#height: 20vh;
+}	
+table thead tr th  {
+  /* you could also change td instead th depending your html code */
+  background-color: lightgreen;
+  position: sticky;
+  
+  z-index: 100;
+  #top:   20vh;
+
+}
+
+td {
+  /* Not required only for visualizing */
+  padding: 1em;
+}
+
+click{
+position:absolute;
+
+font-size:30vw; 
+top: 1px;
+
+}
+
+@keyframes clicking {
+  0% {
+    font-size: 3vw;
+  }
+  40% {
+    font-size: 4vw;
+  }
+    80% {
+    font-size: 2vw;
+  }
+  
+  100% {
+    font-size: 3vw;
+  }
+}
+
+</style>
+<meta charset="UTF-8">
+	<title>omics raw data format identifier</title>
+</head>
+<body>
+	<div class="banner" id="banner">
+	
+			</div>
+	<form id="choose file" action="index.html" method="POST" enctype="multipart/form-data">
+		<div>
+			<label for="fileselect"/>
+			<div id="filedrag">drop files here or click inside the dashed area:
+					
+					<div id="button">
+					<input type="file" id="fileselect" name="fileselect[]" multiple="multiple"/>
+					<h1 id="click">☝</h1>
+				</div>
+			</div>
+		</div>
+		<div id="submitbutton">
+			<button type="submit">Upload Files</button>
+		</div>
+	</form>
+	<div>
+		<table id="file-table" style="width:100%">
+			<thead>
+				<tr>
+					<th>file name</th>
+					<th>size</th>
+					<th>extension</th>
+					<th>omics</th>
+					<th>endpoint repositories</th>
+				</tr>
+			</thead>
+			<tbody>
+     
+  </tbody>
+		</table>
+		<div>
+			<script type="module">
+	import name_list from "./js/name_list.json" assert { type: "json" };
+	
+  
+
+	
+
+	function addRow(omics, cells) {
+		
+		var table = document.getElementById("file-table");
+		var row = table.insertRow(-1);
+			for (const cell of cells ) {
+			var cellx = row.insertCell(-1);
+			console.log(cell)
+			cellx.innerHTML = cell;
+			}
+	}
+
+	function FileDragHover(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		e.target.className = (e.type == "dragover" ? "hover" : "");
+	}
+
+	function FileSelectHandler(e) {
+		 
+		var fileList = [];
+		
+		
+		FileDragHover(e);
+		var files = e.target.files || e.dataTransfer.files;	
+		for (const file of files) {
+		ParseFile(file);
+		}
+			
+	}
+
+	function formatSize(x){
+		const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+		let l = 0, n = parseInt(x, 10) || 0;
+			while(n >= 1024 && ++l){
+				n = n/1024;
+			}
+		return (n.toFixed(n < 10 && l > 0 ? 1 : 0) + ' ' + units[l]);
+		}
+		function ParseFile(file) {
+		    let extension = file.name.split('.').pop();
+		    var omics = listCompare(extension, name_list);
+		    addRow(omics,  [file.name, formatSize(file.size), extension, omics[0] , omics[1]] );
+		}
+		function Init() {
+		    var fileSelect = document.getElementById("fileselect"),
+		    fileDrag = document.getElementById("filedrag"),
+		    submitButton = document.getElementById("submitbutton");
+		    fileSelect.addEventListener("change", FileSelectHandler, false);
+		    var xhr = new XMLHttpRequest();
+		    if (xhr.upload) {
+		        fileDrag.addEventListener("dragover", FileDragHover, false);
+		        fileDrag.addEventListener("dragleave", FileDragHover, false);
+		        fileDrag.addEventListener("drop", FileSelectHandler, false);
+		        fileDrag.style.display = "block";
+		        submitbutton.style.display = "none";
+		    }
+		}
+		if (window.File && window.FileList && window.FileReader) {
+		    Init();
+		}
+		function listCompare(extension, name_list) {
+		    const omics2ep = {
+		        "genomics": "ENA",
+		        "transcriptomics": "GEO",
+		        "proteomics": "PRIDE",
+		        "metabolomics": "Metabolights"
+		    };
+		    var omics1 = [];
+		    var epYes = [];
+		    for (var prop in name_list.extension_ident) {
+		        let listExtension = name_list.extension_ident[prop].split('.').pop();
+		        if (listExtension == extension) {
+		            console.log(name_list.omics[prop]);
+		            omics1.push(name_list.omics[prop]);
+		            let epName = omics2ep[name_list.omics[prop]];
+		            epYes.push(epName + ":" + name_list.EP1[prop]);
+		        } else {}
+		    }
+		    return [omics1, epYes];
+		}
+			</script>
+		</body>
+		<!
+author: xiaoranzhou
+modified from SitePoint.com
+adapted scripts from Craig Buckler (@craigbuckler) of OptimalWorks.net
+>
+	</html>
