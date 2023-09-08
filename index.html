@@ -73,7 +73,10 @@
       margin-bottom: -0.5em;
       margin-top: 0.5em;
     }
-
+    dl, ol, ul {
+      margin-top: 0.8em;
+    /* margin-bottom: 1rem; */
+    }
     div.main {
       background-color: white;
     }
@@ -131,7 +134,10 @@
       color:white;
 
     }
-
+    .nav .nav-link:hover  {
+      color:black;
+      background-color: white;
+    }
     p {
       padding-top: 0;
       margin-top: 0;
@@ -156,17 +162,17 @@
 
   <div class="" style="height: 100vh; width:100vw; overflow-x: hidden; overflow-y: hidden;">
       <div class="navbar navbar-expand-lg " style="background: rgb(45, 62, 80); height:3.25rem">
-        <div class="container-fluid">
+        <div class="container-fluid" style="height:100%">
 
           <a class="navbar-brand" href="https://nfdi4plants.org/">
             <img src="images/logo.png" alt="Logo" width="32" height="32" style=" ">
           </a>
 
-          <ul class="nav nav-tabs justify-content-center" id="TabMenu" role="tablist" style="margin-top:10px ">
+          <ul class="nav nav-tabs justify-content-center" id="TabMenu" role="tablist" style=" height:100%">
 
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active px-3" id="WebQC" data-bs-toggle="tab" data-bs-target="#home" type="button"
-                role="tab" aria-controls="home" aria-selected="true">WebQC Summary</button>
+            <li class="nav-item " role="presentation" >
+              <button class="nav-link px-3 active " id="WebQC" data-bs-toggle="tab" data-bs-target="#home" type="button"
+                role="tab" aria-controls="home" aria-selected="true">Comparison</button>
             </li>
 
           </ul>
@@ -194,11 +200,61 @@
               <div class=" area uploadarea " id="importArea"
               ondragenter="this.className='area uploadarea dragging'" 
               ondrop=";DragAndDrop(event)" style="margin:auto; height:100%">
-                 <span id="folderStru"></span>
+                 
                 
-                <input type="file" onchange="onFiles(this.files)" id="import" webkitdirectory  multiple>
+                <input type="file" onchange="onFiles(this.files)" id="import"   multiple>
               </div>
               <div class="text-start" id="sum" style="margin:auto; ">
+                <div class="dropdown">
+                  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="fileDropDown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Numbers of files are scanned
+                  </a>
+                
+                  <ul class="dropdown-menu" id="fileList" aria-labelledby="fileDropDown">
+                    
+
+                  </ul>
+                </div>
+                <br>
+                <div class="dropdown">
+                  <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="genomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Numbers of files can be sumitted to ENA
+                  </a>
+                
+                  <ul class="dropdown-menu" id="genomicsList" aria-labelledby="genomicsDropDown">
+                    
+
+                  </ul>
+                </div>
+                <br>
+                <div class="dropdown">
+                  <a class="btn btn-success dropdown-toggle" href="#" role="button" id="transcriptomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Numbers of files can be sumitted to GEO
+                  </a>
+                
+                  <ul class="dropdown-menu" id="transcriptomicsList" aria-labelledby="transcriptomicsDropDown">
+                  </ul>
+                </div>
+                <br>
+                <div class="dropdown">
+                  <a class="btn btn-warning dropdown-toggle" href="#" role="button" id="metabolomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
+                    0 files can be sumitted to Metabolites
+                  </a>
+                  <ul class="dropdown-menu" id="metabolomicsList" aria-labelledby="metabolomicsDropDown">
+                  </ul>
+                </div>
+                <br>
+                <div class="dropdown">
+                  <a class="btn btn-info dropdown-toggle" href="#" role="button" id="proteomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
+                    0 files can be sumitted to PRIDE
+                  </a>
+                  <ul class="dropdown-menu" id="proteomicsList" aria-labelledby="proteomicsDropDown">
+                  </ul>
+                </div>
+
+
+                
+
               </div>
               <div class="text-start" id="download" style="margin:auto; ">
               </div>
@@ -307,8 +363,9 @@
     var figure_7 = [];
     var all_figures = [figure_1, figure_2,figure_3, figure_4,figure_5, figure_6, figure_7];
     var dbg;
+    var raw_data_json;
     var folders = {files: [], folders: []};
-    
+    var gFiles = [];
     const D3Colors = [
         '#1f77b4',
         '#ff7f0e',
@@ -321,6 +378,21 @@
         '#bcbd22',
         '#17becf'
       ];
+      const repoList = {
+        "genomics": "ENA",
+        "transcriptomics": "GEO",
+        "metabolomics": "Metabolight",
+        "proteomics": "ENA",
+
+
+      };
+      var rawExt;
+      var omicsList;
+    fetch("./js/name_list.json")
+      .then(res => res.json())
+      .then(data => {raw_data_json = JSON.parse(JSON.stringify(data));
+      rawExt = raw_data_json["extension_ident"]; omicsList = raw_data_json["omics"]})
+
     function err(text) {
       document.getElementById("console").innerHTML += text + "<br>";
 
@@ -615,12 +687,13 @@
 
 
         const n = 10;//(imported.files.length + 3).toString();
-
-        const tabMenuHTML = '<li class="nav-item px-3" role="presentation" style=" width:calc(80vw /'+ n +')"><button class="nav-link" id="' + fileName1 +
+        let TabMenu =  document.getElementById("TabMenu");
+        const tabMenuHTML = '<li class="nav-item " role="presentation" style=" width:calc(80vw /'+ n +')"><button class="nav-link " id="' + fileName1 +
           '_tab" data-bs-toggle="tab" data-bs-target="#' + fileName1 +
           '"type="button" role="tab" aria-controls="profile" aria-selected="false">' + fileName1 + '</button></li>';
-        document.getElementById("TabMenu").innerHTML += tabMenuHTML;
-
+          TabMenu.innerHTML += tabMenuHTML;
+          let TabChildren = TabMenu.children;
+        [].map.call(TabChildren, (ele, index)=> {ele.setAttribute("style", "width:calc(80vw /"+ Math.max(8,TabChildren.length)+")" ) } )
 
         const tabContentHTML = '<div class="tab-pane fade" id="' + fileName1 + '" role="tabpanel" aria-labelledby="' + fileName1 +
           `_tab" > <div class=" col-sm-12 ">
@@ -641,29 +714,11 @@
                 </div > `;
 
         document.getElementById("TabContent").innerHTML += tabContentHTML;
+
         const sums = htmlEle.querySelectorAll("div.summary");
         sums[0].style = "position: static; width: auto; top: 0em; margin: auto"
         let sum = document.getElementById(fileName1 +"_sum");
         sum.innerHTML = sums[0].innerHTML;
-
-
-
-
-
-
-
-
-
-
-
-
-
-       
-
-
-
-
-
         let htmlVis = document.getElementById(fileName1+"_content");
 
         let main = htmlEle.querySelector("div.main");
@@ -767,7 +822,7 @@
 
 
        function GetFileTree(item, SubFolder, path) {
-            
+        document.getElementById("modalButton").click();
             path = path || "";
             if (item.isFile) {
                 
@@ -806,18 +861,41 @@
                     }
                 });
             };
-            
+            document.getElementById("modalButton").click();   
         }
 
       function onFile(file, fileN, fileindex, info, path) {
           info = info || folders["files"];
-          path = path || "/"
+          path = path || "/";
+          const extension = file.name.split(".").slice(-1)[0].toString();
+          const allExt = file.name.split(/[\s,\-_:.]+/);
+          gFiles.push({ name:file.name, lastExt:extension, allExt:allExt, size : file.size, "path":path  });
           info[file.name] = {size : file.size,  "path":path};
-          name = file.name.replace(/.[^/.]+$/, '');
-          document.getElementById("folderStru").innerHTML += path + file.name + "<br>";
           
+          name = file.name.replace(/.[^/.]+$/, '');
+          
+          
+          document.getElementById("importArea").setAttribute("style", "margin:auto; height:20%" );
+          document.getElementById("fileList").innerHTML += '<li><a class="dropdown-item" href="#">'+file.name+'</a></li>';
+          document.getElementById("fileDropDown").innerText = gFiles.length +" files are scanned";
         console.log('upload code goes here', file, name);
-        const extension = file.name.split(".").slice(-1)[0].toString();
+        
+        let rawExtList = [];
+        for (var key in rawExt){ rawExtList.push(rawExt[key]) ;
+}
+        let omics = [];
+        console.log(rawExtList );
+        [].map.call(allExt, (ele, index)=> {  let listIndex = rawExtList.map((e, i) => e === "."+ele ? i : '').filter( String ) ; 
+        //console.log("." +ele );
+        //console.log(listIndex );
+        listIndex.length ==0 ? {} : [].map.call(listIndex, (ele, index) => { omics.push(omicsList[ele]) }) ;
+      })
+        //console.log("." +ele );
+        console.log(omics );
+        [].map.call(omics, (ele, index) => { const menuList = document.getElementById(ele +"List"); 
+        menuList.innerHTML += '<li><a class="dropdown-item" href="#">'+file.name+'</a></li>'; 
+        document.getElementById(ele +"DropDown").innerText = menuList.childElementCount + "files can be submitted to " + repoList[ele];
+      });
         if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
           if (file.size < (3980000 * 1024)) {
             //imported.parentNode.className = 'area uploading';
@@ -837,7 +915,7 @@
 
         
     function onFiles(files) {
-      
+      document.getElementById("modalButton").click();
 
       
       let fileN = files.length;
@@ -847,7 +925,7 @@
       } )
       
       
-      
+      document.getElementById("modalButton").click();  
     }
 
 
