@@ -207,7 +207,7 @@
               <div class="text-start" id="sum" style="margin:auto; ">
                 <div class="dropdown">
                   <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="fileDropDown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Numbers of files are scanned
+                    File(s)
                   </a>
                 
                   <ul class="dropdown-menu" id="fileList" aria-labelledby="fileDropDown">
@@ -218,7 +218,7 @@
                 <br>
                 <div class="dropdown">
                   <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="genomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Numbers of files can be sumitted to ENA
+                    ENA Data File
                   </a>
                 
                   <ul class="dropdown-menu" id="genomicsList" aria-labelledby="genomicsDropDown">
@@ -229,7 +229,7 @@
                 <br>
                 <div class="dropdown">
                   <a class="btn btn-success dropdown-toggle" href="#" role="button" id="transcriptomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Numbers of files can be sumitted to GEO
+                    GEO Data File
                   </a>
                 
                   <ul class="dropdown-menu" id="transcriptomicsList" aria-labelledby="transcriptomicsDropDown">
@@ -238,7 +238,7 @@
                 <br>
                 <div class="dropdown">
                   <a class="btn btn-warning dropdown-toggle" href="#" role="button" id="metabolomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
-                    0 files can be sumitted to Metabolites
+                    Metabolight Data Files
                   </a>
                   <ul class="dropdown-menu" id="metabolomicsList" aria-labelledby="metabolomicsDropDown">
                   </ul>
@@ -246,7 +246,7 @@
                 <br>
                 <div class="dropdown">
                   <a class="btn btn-info dropdown-toggle" href="#" role="button" id="proteomicsDropDown" data-bs-toggle="dropdown" aria-expanded="false">
-                    0 files can be sumitted to PRIDE
+                    PRIDE Data Files
                   </a>
                   <ul class="dropdown-menu" id="proteomicsList" aria-labelledby="proteomicsDropDown">
                   </ul>
@@ -382,7 +382,7 @@
         "genomics": "ENA",
         "transcriptomics": "GEO",
         "metabolomics": "Metabolight",
-        "proteomics": "ENA",
+        "proteomics": "PRIDE",
 
 
       };
@@ -392,7 +392,7 @@
       .then(res => res.json())
       .then(data => {raw_data_json = JSON.parse(JSON.stringify(data));
       rawExt = raw_data_json["extension_ident"]; omicsList = raw_data_json["omics"]})
-
+    var runningModal  = new bootstrap.Modal(document.getElementById('runningModal'));  
     function err(text) {
       document.getElementById("console").innerHTML += text + "<br>";
 
@@ -486,19 +486,21 @@
 
 
     function runFalco(file, fileN, fileindex) {
-      document.getElementById("modalButton").click();
+
       //fetch(file)
       //.then((res) => res.text())
       //.then((text) => {
-      
+        
       let reader = new FileReader();
       reader.onload = function () {
+       
         var data = new Uint8Array(reader.result);
-        const fileName = file.name;
+        const fileName =  file.name.replace(" ", "-");
         FS.writeFile(fileName, data);
         const fileName1 = fileName.split(".")[0];
+        
         callMain([fileName]);
-
+        
         // ;
 
         const summary = FS.readFile("summary.txt");
@@ -789,14 +791,20 @@
         dl_ele.append(d3);
 
         total_qc = total_qc +1;
-        console.log(fileN+ " the file is " +  fileindex)
-        if ( fileindex+1 ==fileN){
-
-          document.getElementById("modalButton").click();
+        //console.log(fileN+ " the file is " +  fileindex)
+        const TabN = document.getElementById("TabMenu");
+        const ENAN = document.getElementById("genomicsList");
+        if (  TabN.childElementCount == ENAN.childElementCount+1 ){
+          runningModal.hide();
+          
         }else{}
-       
+        
+
+        
       };
       reader.readAsArrayBuffer(file);
+      
+       
 
       //})
       
@@ -822,7 +830,7 @@
 
 
        function GetFileTree(item, SubFolder, path) {
-        document.getElementById("modalButton").click();
+        
             path = path || "";
             if (item.isFile) {
                 
@@ -861,10 +869,13 @@
                     }
                 });
             };
-            document.getElementById("modalButton").click();   
+            
         }
 
       function onFile(file, fileN, fileindex, info, path) {
+        runningModal.show();
+        console.log("running modal showed");
+        
           info = info || folders["files"];
           path = path || "/";
           const extension = file.name.split(".").slice(-1)[0].toString();
@@ -878,7 +889,7 @@
           document.getElementById("importArea").setAttribute("style", "margin:auto; height:20%" );
           document.getElementById("fileList").innerHTML += '<li><a class="dropdown-item" href="#">'+file.name+'</a></li>';
           document.getElementById("fileDropDown").innerText = gFiles.length +" files are scanned";
-        console.log('upload code goes here', file, name);
+        //console.log('upload code goes here', file, name);
         
         let rawExtList = [];
         for (var key in rawExt){ rawExtList.push(rawExt[key]) ;
@@ -894,7 +905,7 @@
         console.log(omics );
         [].map.call(omics, (ele, index) => { const menuList = document.getElementById(ele +"List"); 
         menuList.innerHTML += '<li><a class="dropdown-item" href="#">'+file.name+'</a></li>'; 
-        document.getElementById(ele +"DropDown").innerText = menuList.childElementCount + "files can be submitted to " + repoList[ele];
+        document.getElementById(ele +"DropDown").innerText = menuList.childElementCount  + " potential " +repoList[ele]+ " Data File(s) "  ;
       });
         if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
           if (file.size < (3980000 * 1024)) {
@@ -907,7 +918,7 @@
             
           }
         } else {
-          window.alert('file extension' + extension + ' is not supported, please fastq, bam, or gz files');
+          err('file extension' + extension + ' is not supported, please fastq, bam, or gz files');
           
         }
         
@@ -915,7 +926,7 @@
 
         
     function onFiles(files) {
-      document.getElementById("modalButton").click();
+      
 
       
       let fileN = files.length;
@@ -925,7 +936,7 @@
       } )
       
       
-      document.getElementById("modalButton").click();  
+       
     }
 
 
