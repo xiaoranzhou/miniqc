@@ -190,21 +190,25 @@
         </div>
 
       </div>
+      <div class="row tab-content" id="TabContent" style="height:calc(100vh - 3.5rem )">
+        <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home_tab">
     <div class="row" style="height:calc(100vh - 3.5rem )">
-      <div class=" col-sm-10 ">
-        <div class="row tab-content" id="TabContent" style="height:calc(100vh - 3.5rem )">
-          <div class="tab-pane fade active show" id="home" role="tabpanel" aria-labelledby="home_tab">
-            <div class="row">
-            <div class="col-sm-3 " style="padding-right : 1rem;">
+      
+        
+            
+            <div class="col-sm-2 " style="padding : 1rem;">
               
+
+            </div>
+            <div class="col-sm-8" id="multiQC" style="padding: 0px ;height:calc(100vh - 3.5rem ); overflow-y: scroll;">
               <div class=" area uploadarea " id="importArea"
               ondragenter="this.className='area uploadarea dragging'" 
-              ondrop=";DragAndDrop(event)" style="margin:auto; height:100%">
+              ondrop=";DragAndDrop(event)" style="margin:auto; height:20%">
                  
                 
                 <input type="file" onchange="onFiles(this.files)" id="import"   multiple>
               </div>
-              <div class="text-start" id="sum" style="margin:auto; ">
+              <div class="text-start btn-group" id="sum" style="margin:auto; ">
                 <div class="dropdown">
                   <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="fileDropDown" data-bs-toggle="dropdown" aria-expanded="false">
                     File(s)
@@ -258,9 +262,6 @@
               </div>
               <div class="text-start" id="download" style="margin:auto; ">
               </div>
-            </div>
-            <div class="col-sm-9" id="multiQC" style="height:calc(100vh - 3.5rem ); overflow-y: scroll;">
-
               <div class="module">
                 <h2 class="" id="spider"> Summary Radar
                   </h2>
@@ -309,17 +310,23 @@
                   </h2>
                 <div id="p7f"></div>
               </div>
+              <div>
+              <pre class="console" id="console"
+        style="position: fixed; background-color: #fff; opacity: 70%; font-size: 9px;
+        bottom: 0;  height:10%; width: 67%; border: #2a5e8c ; border-width: 1px;
+   text-align: left; "> Console output 
+                </pre>
+                </div>
             </div>
-          </div>
-         </div>
-        </div>
-      </div>
+          
+
+      
     
     <div class="col-sm-2 align-self-center" style="margin-left: 0px; padding :0px;">
-      <pre class="console" id="console"
-        style="font-size: 8px; ; padding :0px; overflow-y: scroll; overflow-x: scroll;height: calc(100vh - 3.5rem ); margin-bottom: 0px;"> Console output 
-                </pre>
+      
     </div>
+  </div>
+</div>
   </div>
   <!-- Button trigger modal -->
 <button type="button" id="modalButton" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#runningModal">
@@ -908,7 +915,7 @@
         document.getElementById(ele +"DropDown").innerText = menuList.childElementCount  + " potential " +repoList[ele]+ " Data File(s) "  ;
       });
         if (extension === 'fastq' || extension === 'fasta' || extension === 'bam' || extension === 'gz') {
-          if (file.size < (3980000 * 1024)) {
+          if (file.size < (39800000 * 1024)) {
             //imported.parentNode.className = 'area uploading';
             runFalco(file, fileN, fileindex);
 
